@@ -1,0 +1,2 @@
+# GraylogMarket
+Graylog configurations
