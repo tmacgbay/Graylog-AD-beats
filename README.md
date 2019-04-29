@@ -6,4 +6,4 @@ User/Group/OU changes (framework)
 Additional framework for monitoring Windows warnings and Errors
  - set up for alerting on Exchange 2013 certificate expiry
  
- More details in Graylog Marketplace
+
