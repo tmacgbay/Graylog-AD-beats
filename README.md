@@ -14,49 +14,7 @@ NOTE:   There are installation caveats that will cause you problems if you don't
  
 2) You need to set up external distribution groups.  We have set up distribution groups on our e-mail server for different levels of alerts.  P1 alerts go to all internal and external IT e-mail and their pagers, p2 alerts go only to internal e-mail and P3 is not alerted on but is separated for reporting purposes.
 
-3) Download or create the following files:
--- /etc/graylog/admin_groups.csv
-"nicename", "ADname"
-"Administrators", "Administrators"
-"Backup Operators", "Backup Operators"
-"DNS Admins", "DNSAdmins"
-"Domain Admins", "Domain Admins"
-"Enterprise Admins", "Enterprise Admins"
-"Organization Management", "Organization Management"
-"Schema Admins", "Schema Admins"
- 
--- /etc/graylog/login_failure_code.csv
-"err_code", "explanation"
-"0x6", "Bad username - kerberos"
-"0x7", "New computer account(?) - kerberos"
-"0x9", "Administrator should reset password - kerberos"
-"0xC", "Workstation Restriction - kerberos"
-"0x12", "Account Disabled, expired, locked out, logon hours restriction - kerberos"
-"0x17", "The users password has expired - kerberos"
-"0x18", "Bad Password - kerberos"
-"0x20", "Frequently logged by computer accounts - kerberos"
-"0x25", "Workstation clock too far out of sync with the DCs - kerberos"
-"0xC0000064", "User name does not exist - NTLM"
-"0xC000006A", "User name is correct but the password is wrong - NTLM"
-"0xC0000234", "User is currently locked out - NTLM"
-"0xC0000072", "Account is currently disabled - NTLM"
-"0xC000006F", "User tried to logon outside his day of week or time of day restrictions - NTLM"
-"0xC0000070", "Workstation restriction - NTLM"
-"0xC00000193", "Account expiration - NTLM"
-"0xC0000071", "Expired password - NTLM"
-"0xC0000133", "Clocks between DC and other computer too far out of sync - NTLM"
-"0xC0000224", "User is required to change password at next logon - NTLM"
-"0xC0000225", "Evidently a bug in Windows and not a risk (per ultimateITSecurity.com) - NTLM"
-"0xC000015b", "The user has not been granted the requested logon type (aka logon right) at this machine - NTLM"
-
--- /etc/graylog/login_types.csv
-"number","type"
-"2","Interactive"
-"3","Network"
-"4","Batch"
-"5","Service"
-"7","Unlock"
-"8","NetworkClearText"
-"9","NewCredentials"
-"10","RemoteInteractive"
-"11","CachedInteractive"
+3) Download or create the following files to /etc/graylog
+	- admin_groups.csv
+	- login_failure_code.csv
+	- login_types.csv
