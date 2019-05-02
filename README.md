@@ -1,5 +1,5 @@
 # GraylogMarket - Active Directory Monitoring and Alerting - Beats      
-Graylog Content Pack
+Graylog Content Pack - AD-Monitoring-Alerts-Beats.json
 
  - Winlogbeat Input, Lookup Tables, Pipeline rules, Sidecar Configuration, Streams, Alert Conditions and Notifications, Dashboard 
  - monitors and alerts on User/Group/OU changes (rules and framework)
@@ -25,4 +25,8 @@ NOTE:   There are installation caveats that will cause you problems if you don't
 
 5) OF NOTE:  I created a separate INDEX for the winShortLife stream so I could toss the junk out early.  It is a catch all for information and the idea is to pull out things you are interested and let the rest fade away at a more reasonable time.   I also didn't make it TOO short in case there was a larger isssue I needed to track down.
 
-6) To track things properly you need to set AD policy on for at least all DCs - pereferably all servers... and if you are frought on security, all workstations as well.  You can download the Advanced-Audit-Policy-Configuration.csv I thrown together for a base setting for having usditing logs in your "Default Domain Controlers Policy" or in your all servers policy...  It's a basic framework - adjust as needed.  To import, edit the policy of your choice and ComputerConfiguration->WindowsSettings->SecuritySettings->AdvancedAuditPolicyConfiguration and right click on Audit Policies 
+6) To track things properly you need to set AD policy on for at least all DCs - pereferably all servers... and if you are frought on security, all workstations as well.  You can download the Advanced-Audit-Policy-Configuration.csv I thrown together for a base setting for having usditing logs in your "Default Domain Controlers Policy" or in your all servers policy...  It's a basic framework - adjust as needed.  To import, edit the policy of your choice and ComputerConfiguration->WindowsSettings->SecuritySettings->AdvancedAuditPolicyConfiguration and right click on Audit Policies.   For more visual details you can look at [https://www.lepide.com/how-to/track-changes-in-active-directory.html]  If you want to read more on Audit Policy: [https://docs.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/audit-policy-recommendations] and [https://www.ultimatewindowssecurity.com/securitylog/book/page.aspx?spid=chapter1]
+
+
+
+
