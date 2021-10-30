@@ -1,0 +1,1629 @@
+{
+  "v": "1",
+  "id": "9d035b1c-c37d-4f25-ae64-0b17a3d3b6c7",
+  "rev": 2,
+  "name": "AD Pipeline - rules",
+  "summary": "Windows Pipeline and Rules",
+  "description": "Pulling just the pipeline and rules for monitoring AD",
+  "vendor": "Thus",
+  "url": "https://github.com/tmacgbay/Graylog-AD-beats",
+  "parameters": [],
+  "entities": [
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline",
+        "version": "1"
+      },
+      "id": "4f44dc77-737a-403f-849d-a2c97e90d3ad",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "winSECAlert Pipeline"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Security Alerts to notify on User, Machine, Group, OU"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "pipeline \"winSECAlert Pipeline\"\nstage 1 match either\nrule \"AP3-WinSec-BadPw\"\nrule \"AP3-WinSec-UserPWChange\"\nrule \"AP2-WinSec-UserEnableDisable\"\nrule \"AP2-WinSec-AdminPWChange\"\nrule \"AP2-WinSec-UserDeleted\"\nrule \"AP2-WinSec-UserNameChange\"\nrule \"AP2-WinSec-NewUser\"\nrule \"AP3-WinSec-BadPw-Kerberos\"\nrule \"WinSECAlert StageTwo\"\nrule \"Gnrl-correct-Winip-1-internal\"\nrule \"AP2-WinSec-Reboot\"\nrule \"AP2-WinSec-UserLocked\"\nrule \"AP2-WinSec-UserUNlocked\"\nstage 2 match either\nrule \"AP2-WinSec-GroupDeleted\"\nrule \"AP3-WinSec-GroupChanged\"\nrule \"AP2-WinSec-NewGroupCreated\"\nrule \"AP2-WinSec-NewGroupMember\"\nrule \"AP2-WinSec-GroupMemberDelete\"\nrule \"WinSECAlert StageThree\"\nstage 3 match either\nrule \"AP2-WinSec-NewOU\"\nrule \"AP2-WinSec-OU-Deleted\"\nrule \"AP2-WinSec-OU-Changed\"\nrule \"AP2-WinSec-OU-Moved\"\nstage 0 match either\nrule \"WinSECAlert StageOne\"\nrule \"WinSECAlert Stage0DropSet\"\nend"
+        },
+        "connected_streams": [
+          {
+            "@type": "string",
+            "@value": "3cf86b3f-da50-4e6b-81fb-103e953242ab"
+          },
+          {
+            "@type": "string",
+            "@value": "e0f8ba75-ee04-44a0-86eb-174bc6e9d599"
+          }
+        ]
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "b67dd75a-3bfd-4719-a953-9a2f9fb130fd",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-UserLocked"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "User Locked Out [4740]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-UserLocked\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4740\"\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| USER LOCK: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\tset_field(\"ALERT\", \"TRUE\");\n\t//    route_to_stream(\"P1-Alert\");\n\troute_to_stream(\"P2-Alert\");\n\troute_to_stream(\"P3-Password\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "d3222f3d-03fb-442e-8726-bc2e1ef2150c",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-OU-Changed"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "OU Changed [5136]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-OU-Changed\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"5136\"  AND\n    to_string($message.winlog_event_data_AttributeLDAPDisplayName) == \"ou\"\n    \nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| OU CHANGED by : \", to_string($message.winlog_event_data_SubjectUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "e70e50bb-dce5-42d4-a0db-40b3cc0e19a0",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-AdminPWChange"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Admin Changed user Password [4724]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-AdminPWChange\"\nwhen\n    //Privlidged user changed a password\n    // assumes you have checked for\n    // windows-security-information\n    (\n    to_string($message.winlog_event_id) == \"4724\"\n    )                                                   &&\n    // RapidRecovery backup enables/deletes/resets PW on accounts for operation overnight\n    NOT starts_with(value: to_string($message.winlog_event_data_TargetUserName), prefix:\"ReplayEngine\")\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| An Admin re-set PW for USER: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\n\troute_to_stream(\"P3-Password\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "2a60247d-d8ee-451d-a42d-5d90bdc5bea7",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-NewOU"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "New OU Created [5137]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-NewOU\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"5137\"\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| NEW OU Created by: \", to_string($message.winlog_event_data_SubjectUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "655c1108-4a1c-49c2-94e7-a4805b2c4fea",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-UserNameChange"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "User Account Name Change [4781]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-UserNameChange\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4781\"  \nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| USER NAME CHANGED: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "d268bf4d-dc04-45eb-bf50-5527fa910daa",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-UserDeleted"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "User Account Deleted [4726]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-UserDeleted\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    (\n    to_string($message.winlog_event_id) == \"4726\"\n    )                                                        &&\n    // RapidRecovery backup enables/deletes accounts for operation overnight\n    NOT starts_with(value: to_string($message.winlog_event_data_TargetUserName), prefix:\"ReplayEngine\")\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| USER DELETED: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "af911904-ae3c-4f89-9671-82848abaaf78",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-GroupMemberDelete"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Group Member Deleted - AD or Local [4733, 4729, 4757, 4747, 4752, 4762]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-GroupMemberDelete\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    (\n    to_string($message.winlog_event_id) == \"4733\"  ||\n    to_string($message.winlog_event_id) == \"4729\"  ||\n    to_string($message.winlog_event_id) == \"4757\"  ||\n    to_string($message.winlog_event_id) == \"4747\"  ||\n    to_string($message.winlog_event_id) == \"4752\"  ||\n    to_string($message.winlog_event_id) == \"4762\"\n    )  \n    &&  \n    (\n       to_string($message.winlog_event_data_TargetUserName)    != \"None\"   &&       // Rapidrecovery shenanigans\n       to_string($message.winlog_event_data_TargetUserName)    != \"ReplayCoreEphemeralAccounts\"  // \n    )  \nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA|GROUP MEMEBER DELETED: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "ae9e474c-34db-4dd5-a331-4b6862e472c3",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-NewGroupMember"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Group Membership Add - AD or Local [4732, 4728, 4756, 4746, 4751, 4761]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-NewGroupMember\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    (  to_string($message.winlog_event_id)         == \"4732\"  ||\n       to_string($message.winlog_event_id)         == \"4728\"  ||\n       to_string($message.winlog_event_id)         == \"4756\"  ||\n       to_string($message.winlog_event_id)         == \"4746\"  ||\n       to_string($message.winlog_event_id)         == \"4751\"  ||\n       to_string($message.winlog_event_id)         == \"4761\"    \n    )  \n    &&  \n    (\n       to_string($message.winlog_event_data_TargetUserName)    != \"None\"   &&       // Rapidrecovery shenanigans\n       to_string($message.winlog_event_data_TargetUserName)    != \"ReplayCoreEphemeralAccounts\"  // \n//       regex(\"\\\\$$\",to_string($message.winlog_event_data_SubjectUserName))  == false\n    )    \nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| NEW GROUP MEMBER: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "66a6f498-e591-49ed-a438-1027a6df6735",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-OU-Moved"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "OU Moved [5139]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-OU-Moved\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"5139\"  \nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| OU MOVED by : \", to_string($message.winlog_event_data_SubjectUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "550247ba-0744-495f-8c4e-c511c5d17943",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP3-WinSec-BadPw-Kerberos"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Bad password (Kerberos) [4771, 4820]\n| Alert Priority 3 - Reporting"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP3-WinSec-BadPw-Kerberos\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4771\" ||\n    to_string($message.winlog_event_id) == \"4820\"\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let requestingIP = replace(to_string($message.winlog_event_data_IpAddress),\"::ffff:\"); // removes the ff...\n    let requestingName = lookup_value(\"CMG_DNS_table\", to_string(requestingIP));\n    set_field(\"cmg_requestingName\", requestingName);  //so we can make quick values\n    let subject_0 = concat(\"-GLA| Kerb-PW FAIL: \", to_string($message.winlog_event_data_TargetUserName));\n    let subject_1 = concat(subject_0, \" connecting from \");\n    let subject_fin = concat(subject_1, to_string(requestingName));\n    set_field(\"e-mail_subject\", subject_fin);\n    //\n    // create detail of (e-mail) alert\n    let LogonTypeResult = \"TGT\";\n    let LogonTypeErr    = lookup_value(\"WinLogonErr\" ,to_string($message.winlog_event_data_Status), 0);\n    let build_mess_0    = concat(\"Failed Password Attemept - \",  to_string($message.winlog_event_data_TargetUserName));\n    let build_mess_1    = concat(build_mess_0, \" attempting a log in from \");\n    let build_mess_2    = concat(build_mess_1, requestingIP);\n    let build_mess_3    = concat(build_mess_2, \" \");\n    let build_mess_4    = concat(build_mess_3, to_string(requestingName));\n    let build_mess_5    = concat(build_mess_4, \" Logon Type: \");\n    let build_mess_6    = concat(build_mess_5, to_string(LogonTypeResult));\n    let build_mess_7    = concat(build_mess_6, \". Attempt registered on: \");\n    let build_mess_8    = concat(build_mess_7, to_string($message.winlog_host_name));\n    let build_mess_9    = concat(build_mess_8, \".  ERROR: \");\n    let build_mess_fin  = concat(build_mess_9, to_string(LogonTypeErr));\n    set_field(\"e-mail_body\", build_mess_fin);\n//    route_to_stream(\"P1-Alert\");\n//    route_to_stream(\"P2-Alert\");\n    route_to_stream(\"P3-Reporting\");\n    route_to_stream(\"P3-Password\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "62b5d1a0-4827-447d-95e5-115794919df9",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-NewUser"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "New User Created [4720]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-NewUser\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4720\"  &&\n    NOT starts_with(to_string($message.winlog_event_data_TargetUserName), \"ReplayEngine\")  //rapidrecovery sucks!\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| NEW USER: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "0022082d-2492-4a37-bf5c-7cc55651b468",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP1-2_Create_Alert_Marker"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "P1P2 Marker for Alert Conditions\n| Alert Priority 1 & 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP1-2_Create_Alert_Marker\"\r\nwhen\r\n    NOT has_field(\"Alert\")\r\nthen\r\n    set_field(\"ALERT\",\"TRUE\");\r\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "77b9774b-b639-408c-b55f-428ea0734bfc",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "WinSECAlert StageTwo"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Allow Group Management and OU management alerts to pass to the next stage."
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"WinSECAlert StageTwo\"\nwhen\n\n  $message.winlog_task\t\t== \"Security Group Management\"      ||\n  $message.winlog_task      == \"Directory Service Changes\"\nthen\n\n  //Allow this to pass through to next stage\n  \nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "e600609a-6dba-4f5d-b871-7eb5705d015c",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-OU-Deleted"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "OU Deleted [5141]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-OU-Deleted\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"5141\"  \nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA|AD item DELETED by : \", to_string($message.winlog_event_data_SubjectUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "80e91e1e-198d-462b-81ff-5e8b14d7cedd",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-UserUNlocked"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "User UN-locked [4767]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-UserUNlocked\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4767\"\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| USER UNLOCK: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\tset_field(\"ALERT\", \"TRUE\");\n\t//    route_to_stream(\"P1-Alert\");\n\troute_to_stream(\"P2-Alert\");\n\troute_to_stream(\"P3-Password\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "3e125cf4-11cb-46f6-b096-75abddd70d6d",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-Reboot"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Reboot of Machine [1074]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-Reboot\"\nwhen\n    //PMachine was rebooted - this alert who and why.\n    // assumes you have checked for\n    // windows-security-information\n    (\n    to_string($message.winlog_event_id) == \"1074\"\n    )                                                   \nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| \", to_string($message.winlog_event_data_param5));\n    let subject_1 = concat(subject_0,\" of: \");\n    let subject_2 = concat(subject_1, to_string($message.source));\n    let subject_3 = concat(subject_2, \" by \");\n    let subject_4 = concat(subject_3, to_string($message.winlog_event_data_param7));\n    set_field(\"e-mail_subject\", subject_4);\n    let subject_5 = concat(subject_4, \" REASON: \");\n    let subject_6 = concat(subject_5, to_string($message.winlog_event_data_param2));\n    let subject_7 = concat(subject_6, \" COMMENT: \");\n    let subject_8 = concat(subject_7, \" UNAVAILABLE \");\n    \n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "9b260e2e-2642-4c9f-838b-8be07b35df9e",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP3-WinSec-GroupChanged"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Group Changed - AD or Local [4735, 4737, 4755, 4745, 4750, 4760]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP3-WinSec-GroupChanged\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4735\"  ||\n    to_string($message.winlog_event_id) == \"4737\"  ||\n    to_string($message.winlog_event_id) == \"4755\"  ||\n    to_string($message.winlog_event_id) == \"4745\"  ||\n    to_string($message.winlog_event_id) == \"4750\"  ||\n    to_string($message.winlog_event_id) == \"4760\"\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| GROUP CHANGED: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    //    route_to_stream(\"P2-Alert\");\n    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "03736404-a995-4454-b5b0-8ee729d5806c",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-GroupDeleted"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Group Deleted - AD or Local [4734, 4730, 4758, 4748, 4753, 4763]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-GroupDeleted\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4734\"  ||\n    to_string($message.winlog_event_id) == \"4730\"  ||\n    to_string($message.winlog_event_id) == \"4758\"  ||\n    to_string($message.winlog_event_id) == \"4748\"  ||\n    to_string($message.winlog_event_id) == \"4753\"  ||\n    to_string($message.winlog_event_id) == \"4763\"\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| GROUP DELETED: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "900941fa-cc34-4d75-97d0-7c76816ec4a2",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP3-WinSec-BadPw"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Bad password [4625]\n| Alert Priority 3 -\nP3-Reporting\nP3-Password"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP3-WinSec-BadPw\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4625\"             \nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| PW FAIL: \", to_string($message.winlog_event_data_TargetUserName));\n    let subject_1 = concat(subject_0, \" connecting to \");\n    let subject_fin = concat(subject_1, to_string($message.winlog_host_name));\n    set_field(\"e-mail_subject\", subject_fin);\n    //\n    // create detail of (e-mail) alert\n    let LogonTypeNumber = to_string($message.winlog_event_data_LogonType);\n    let LogonTypeResult = lookup_value(\"winLogonType\",LogonTypeNumber, 0);\n    let LogonTypeErr    = lookup_value(\"WinLogonErr\" ,to_string($message.winlog_event_data_SubStatus), 0);\n    let build_mess_0    = concat(\"Failed Password Attempt - \",  to_string($message.winlog_event_data_TargetUserName));\n    let build_mess_1    = concat(build_mess_0, \" attempting to log in to \");\n    let build_mess_2    = concat(build_mess_1, to_string($message.winlog_event_SubjectDomainName));\n    let build_mess_3    = concat(build_mess_2, \"-\");\n    let build_mess_4    = concat(build_mess_3, to_string($message.winlog_host_name));\n    let build_mess_5    = concat(build_mess_4, \". Logon Type: \");\n    let build_mess_6    = concat(build_mess_5, to_string(LogonTypeResult));\n    let build_mess_7    = concat(build_mess_6, \". Attempt came from: \");\n    let build_mess_8    = concat(build_mess_7, to_string($message.winlog_event_data_WorkstationName));\n    let build_mess_9    = concat(build_mess_8, \".  ERROR: \");\n    let build_mess_fin  = concat(build_mess_9, to_string(LogonTypeErr));\n    set_field(\"e-mail_body\", build_mess_fin);\n//    route_to_stream(\"P1-Alert\");\n//    route_to_stream(\"P2-Alert\");\n    route_to_stream(\"P3-Reporting\");    \n    route_to_stream(\"P3-Password\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "388dc483-a657-4b9c-b567-aada13ca3c9d",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP3-WinSec-UserPWChange"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "User Changed Password [4723]\n| Alert Priority 3"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP3-WinSec-UserPWChange\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4723\"\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| USER CHANGED PW: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // create detail of (e-mail) alert\n    let build_mess_0   = concat(\"USER Changed their password: \",  to_string($message.winlog_event_data_TargetUserName));\n    let build_mess_1   = concat(build_mess_0, \" on machine \");\n    let build_mess_2   = concat(build_mess_1, to_string($message.winlog_event_SubjectDomainName));\n    let build_mess_3   = concat(build_mess_2, \"-\");\n    let build_mess_fin = concat(build_mess_3, to_string($message.winlog_computer_name));\n    set_field(\"e-mail_body\", build_mess_fin);\n//    route_to_stream(\"P1-Alert\");\n//    route_to_stream(\"P2-Alert\");\n      route_to_stream(\"P3-Reporting\");      \n      route_to_stream(\"P3-Password\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "1f67c5c0-bf7e-47f0-aed7-dfece4208740",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "WinSECAlert StageThree"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Allow Directory Services things like OU management alerts to pass to the next stage."
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"WinSECAlert StageThree\"\nwhen\n  $message.winlog_task      == \"Directory Service Changes\"\nthen\n  //Allow this to pass through\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "18fb5501-57d1-4822-a6fa-f8114de80330",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-UserEnableDisable"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "User account enable/disabled [4722, 4725]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-UserEnableDisable\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    (\n    to_string($message.winlog_event_id) == \"4722\"   ||\n    to_string($message.winlog_event_id) == \"4725\"\n    )                                                   &&\n    // RapidRecovery backup enables accounts for operation overnight\n    NOT starts_with(value: to_string($message.winlog_event_data_TargetUserName), prefix:\"ReplayEngine\")\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| USER ENABLED/DISABLED: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "a1bb7ba2-2cef-4bbc-b3eb-b6bd1c7db2f8",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "WinSECAlert StageOne"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Pass through anything that is Windows Security Information events for ALL stages"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"WinSECAlert StageOne\"\nwhen\n  // Narrows and provideds clarity for what is coming through here\n  $message.beats_type         == \"winlogbeat\"                       AND\n  $message.winlog_channel     == \"Security\"                         AND\n  $message.log_level          == \"information\"                      AND\n  has_field(\"winlog_event_id\")                                      AND\n    (\n     $message.winlog_task     == \"Logon\"                            OR\n     $message.winlog_task     == \"Kerberos Authentication Service\"  OR\n     $message.winlog_task     == \"User Account Management\"          OR\n     $message.winlog_task     == \"Directory Service Changes\"        OR\n     $message.winlog_task     == \"Security Group Management\"\n     )\nthen\n  //Allow this to pass through\n  //set the fist line of the event... to the period... to be the action\n  let firstline = grok(\"%{GREEDYDATA:action}.\", to_string($message.message), true);\n\n  set_fields(firstline);\n  \nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "971f7c59-d91c-41d3-88d3-25e0b8b7e5cf",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-NewGroupCreated"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Group Created - AD or Local [4731, 4727, 4754, 4744, 4749, 4759]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-NewGroupCreated\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4731\"  ||\n    to_string($message.winlog_event_id) == \"4727\"  ||\n    to_string($message.winlog_event_id) == \"4754\"  ||\n    to_string($message.winlog_event_id) == \"4744\"  ||\n    to_string($message.winlog_event_id) == \"4749\"  ||\n    to_string($message.winlog_event_id) == \"4759\"\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| NEW GROUP CREATED: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "339febab-53a2-4513-9b78-18fa134d908c",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "WinSECAlert Stage0DropSet"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "WinSECAlert Stage Zero Drop Set -    Messages with the following will be dropped (not alerted, not recorded) \n**** Be careful with this - If you don't want alerting, it is better to \n* Shunt the message to P3-Reporting\n* add a line to ignore it in \"AP1-2_Create_Alert_Marker\"\n* Let it die a short death in WinShortLifeStream"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"WinSECAlert Stage0DropSet\"\nwhen\n  // Drop noisy RapidRecovery items\n  // $message.winlog_collector_node_id == \"RapidRecoveryAccount\"                           OR    // removed, causing issues\n  // Drop actions on Machine accounts - we don't care ....right now.\n  regex(\".*\\\\$$\", to_string($message.winlog_event_data_TargetUserName)).matches == true OR\n  // Drop Healthmailbox logins - they aren't pertinant to what we are watching.\n  starts_with(to_string($message.winlog_event_data_TargetUserName), \"HealthMailbox\", true)\n  \nthen\n  //Drop the message out of processing\n  drop_message();\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "f1291e24-1c5c-467f-bcfa-551af2c8a278",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-UserEnableDisable"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "User account enable/disabled [4722, 4725]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-UserEnableDisable\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    (\n    to_string($message.winlog_event_id) == \"4722\"   ||\n    to_string($message.winlog_event_id) == \"4725\"\n    )                                                   &&\n    // RapidRecovery backup enables accounts for operation overnight\n    NOT starts_with(value: to_string($message.winlog_event_data_TargetUserName), prefix:\"ReplayEngine\")\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| USER ENABLED/DISABLED: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "087f122f-64aa-4d34-8e28-23dd37269286",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-NewUser"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "New User Created [4720]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-NewUser\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4720\"  &&\n    NOT starts_with(to_string($message.winlog_event_data_TargetUserName), \"ReplayEngine\")  //rapidrecovery sucks!\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| NEW USER: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "dc6e3dda-1774-44f5-8838-2306c23045e8",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP3-WinSec-BadPw"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Bad password [4625]\n| Alert Priority 3 -\nP3-Reporting\nP3-Password"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP3-WinSec-BadPw\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4625\"             \nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| PW FAIL: \", to_string($message.winlog_event_data_TargetUserName));\n    let subject_1 = concat(subject_0, \" connecting to \");\n    let subject_fin = concat(subject_1, to_string($message.winlog_host_name));\n    set_field(\"e-mail_subject\", subject_fin);\n    //\n    // create detail of (e-mail) alert\n    let LogonTypeNumber = to_string($message.winlog_event_data_LogonType);\n    let LogonTypeResult = lookup_value(\"winLogonType\",LogonTypeNumber, 0);\n    let LogonTypeErr    = lookup_value(\"WinLogonErr\" ,to_string($message.winlog_event_data_SubStatus), 0);\n    let build_mess_0    = concat(\"Failed Password Attempt - \",  to_string($message.winlog_event_data_TargetUserName));\n    let build_mess_1    = concat(build_mess_0, \" attempting to log in to \");\n    let build_mess_2    = concat(build_mess_1, to_string($message.winlog_event_SubjectDomainName));\n    let build_mess_3    = concat(build_mess_2, \"-\");\n    let build_mess_4    = concat(build_mess_3, to_string($message.winlog_host_name));\n    let build_mess_5    = concat(build_mess_4, \". Logon Type: \");\n    let build_mess_6    = concat(build_mess_5, to_string(LogonTypeResult));\n    let build_mess_7    = concat(build_mess_6, \". Attempt came from: \");\n    let build_mess_8    = concat(build_mess_7, to_string($message.winlog_event_data_WorkstationName));\n    let build_mess_9    = concat(build_mess_8, \".  ERROR: \");\n    let build_mess_fin  = concat(build_mess_9, to_string(LogonTypeErr));\n    set_field(\"e-mail_body\", build_mess_fin);\n//    route_to_stream(\"P1-Alert\");\n//    route_to_stream(\"P2-Alert\");\n    route_to_stream(\"P3-Reporting\");    \n    route_to_stream(\"P3-Password\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "4e3513f4-5aa4-480d-a8c0-129d3af9b13f",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-GroupDeleted"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Group Deleted - AD or Local [4734, 4730, 4758, 4748, 4753, 4763]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-GroupDeleted\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4734\"  ||\n    to_string($message.winlog_event_id) == \"4730\"  ||\n    to_string($message.winlog_event_id) == \"4758\"  ||\n    to_string($message.winlog_event_id) == \"4748\"  ||\n    to_string($message.winlog_event_id) == \"4753\"  ||\n    to_string($message.winlog_event_id) == \"4763\"\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| GROUP DELETED: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "3ac7d476-7896-4639-8a74-7f2c8e04b735",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-GroupMemberDelete"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Group Member Deleted - AD or Local [4733, 4729, 4757, 4747, 4752, 4762]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-GroupMemberDelete\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    (\n    to_string($message.winlog_event_id) == \"4733\"  ||\n    to_string($message.winlog_event_id) == \"4729\"  ||\n    to_string($message.winlog_event_id) == \"4757\"  ||\n    to_string($message.winlog_event_id) == \"4747\"  ||\n    to_string($message.winlog_event_id) == \"4752\"  ||\n    to_string($message.winlog_event_id) == \"4762\"\n    )  \n    &&  \n    (\n       to_string($message.winlog_event_data_TargetUserName)    != \"None\"   &&       // Rapidrecovery shenanigans\n       to_string($message.winlog_event_data_TargetUserName)    != \"ReplayCoreEphemeralAccounts\"  // \n    )  \nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA|GROUP MEMEBER DELETED: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "e30b5727-dcbb-4c1e-91ad-1c1fd020a7aa",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-UserNameChange"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "User Account Name Change [4781]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-UserNameChange\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4781\"  \nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| USER NAME CHANGED: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "f41a0e9f-7f44-4ec8-b149-d0e343e31cb5",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-OU-Changed"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "OU Changed [5136]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-OU-Changed\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"5136\"  AND\n    to_string($message.winlog_event_data_AttributeLDAPDisplayName) == \"ou\"\n    \nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| OU CHANGED by : \", to_string($message.winlog_event_data_SubjectUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "f7dc690a-9864-496f-94cd-f07f526e70c9",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "Gnrl-correct-Winip-1-internal"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "General - correct winlog_event_data_IpAddress for internal-external| note if winlog_event_data_IpAddress was internal "
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"Gnrl-correct-Winip-1-internal\"\nwhen\n    has_field(\"winlog_event_data_IpAddress\")                        &&\n    is_ip(to_ip($message.winlog_event_data_IpAddress))              &&\n    (\n        // Usually these addresses would mean the person is connecting their workstation\n        cidr_match(\"192.168.2.0/23\",   to_ip($message.winlog_event_data_IpAddress)) ||    //Internal Main Range\n        cidr_match(\"192.168.30.0/24\",  to_ip($message.winlog_event_data_IpAddress)) ||    //Internal wireless Range\n        cidr_match(\"10.71.17.0/24\",  to_ip($message.winlog_event_data_IpAddress)) ||      //Internal Spitbrook Range\n        cidr_match(\"10.25.25.0/24\",  to_ip($message.winlog_event_data_IpAddress)) ||      //Internal Tierpoint Range\n        cidr_match(\"10.50.25.0/24\",  to_ip($message.winlog_event_data_IpAddress)) ||      //Internal Tierpoint Range\n//        in_private_net(to_string($message.winlog_event_data_IpAddress))                   || //GRRR\n        // Theseare our external addresses - could mean the person is connecting via wireless\n        cidr_match(\"50.207.58.64/27\",  to_ip($message.winlog_event_data_IpAddress)) ||\n        cidr_match(\"64.119.130.48/29\", to_ip($message.winlog_event_data_IpAddress)) ||\n        cidr_match(\"40.143.1.24/29\",   to_ip($message.winlog_event_data_IpAddress)) ||\n        cidr_match(\"96.78.220.192/28\", to_ip($message.winlog_event_data_IpAddress)) \n    )\n\nthen\n\n    let IP2Name = lookup_value(\"CMG_DNS_table\", $message.winlog_event_data_IpAddress);\n    set_field(\"internal_ip_machinename\", IP2Name);  //change city name to local machine\n    set_field(\"int_ext\",\"internal\");\n    set_field(\"internal_ip\", $message.winlog_event_data_IpAddress);\n\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "525af477-7fa6-4cad-b54d-d4de0de21c5a",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "WinSECAlert StageOne"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Pass through anything that is Windows Security Information events for ALL stages"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"WinSECAlert StageOne\"\nwhen\n  // Narrows and provideds clarity for what is coming through here\n  $message.beats_type         == \"winlogbeat\"                       AND\n  $message.winlog_channel     == \"Security\"                         AND\n  $message.log_level          == \"information\"                      AND\n  has_field(\"winlog_event_id\")                                      AND\n    (\n     $message.winlog_task     == \"Logon\"                            OR\n     $message.winlog_task     == \"Kerberos Authentication Service\"  OR\n     $message.winlog_task     == \"User Account Management\"          OR\n     $message.winlog_task     == \"Directory Service Changes\"        OR\n     $message.winlog_task     == \"Security Group Management\"\n     )\nthen\n  //Allow this to pass through\n  //set the fist line of the event... to the period... to be the action\n  let firstline = grok(\"%{GREEDYDATA:action}.\", to_string($message.message), true);\n\n  set_fields(firstline);\n  \nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "3f7dd9a5-1146-4074-8e85-b356542258e8",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "WinSECAlert StageTwo"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Allow Group Management and OU management alerts to pass to the next stage."
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"WinSECAlert StageTwo\"\nwhen\n\n  $message.winlog_task\t\t== \"Security Group Management\"      ||\n  $message.winlog_task      == \"Directory Service Changes\"\nthen\n\n  //Allow this to pass through to next stage\n  \nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "623c9832-6469-459d-b187-257f61cc4cec",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP3-WinSec-UserPWChange"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "User Changed Password [4723]\n| Alert Priority 3"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP3-WinSec-UserPWChange\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4723\"\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| USER CHANGED PW: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // create detail of (e-mail) alert\n    let build_mess_0   = concat(\"USER Changed their password: \",  to_string($message.winlog_event_data_TargetUserName));\n    let build_mess_1   = concat(build_mess_0, \" on machine \");\n    let build_mess_2   = concat(build_mess_1, to_string($message.winlog_event_SubjectDomainName));\n    let build_mess_3   = concat(build_mess_2, \"-\");\n    let build_mess_fin = concat(build_mess_3, to_string($message.winlog_computer_name));\n    set_field(\"e-mail_body\", build_mess_fin);\n//    route_to_stream(\"P1-Alert\");\n//    route_to_stream(\"P2-Alert\");\n      route_to_stream(\"P3-Reporting\");      \n      route_to_stream(\"P3-Password\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "4f0d92e8-7db0-4a2e-8192-e3974b1317f8",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-OU-Deleted"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "OU Deleted [5141]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-OU-Deleted\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"5141\"  \nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA|AD item DELETED by : \", to_string($message.winlog_event_data_SubjectUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "78d53330-4abb-48df-bf9a-d55bb11128cb",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP3-WinSec-GroupChanged"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Group Changed - AD or Local [4735, 4737, 4755, 4745, 4750, 4760]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP3-WinSec-GroupChanged\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4735\"  ||\n    to_string($message.winlog_event_id) == \"4737\"  ||\n    to_string($message.winlog_event_id) == \"4755\"  ||\n    to_string($message.winlog_event_id) == \"4745\"  ||\n    to_string($message.winlog_event_id) == \"4750\"  ||\n    to_string($message.winlog_event_id) == \"4760\"\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| GROUP CHANGED: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    //    route_to_stream(\"P2-Alert\");\n    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "7990ed45-5a92-4eb5-bf69-f298ac33c463",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "WinSECAlert StageThree"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Allow Directory Services things like OU management alerts to pass to the next stage."
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"WinSECAlert StageThree\"\nwhen\n  $message.winlog_task      == \"Directory Service Changes\"\nthen\n  //Allow this to pass through\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "fc408fa2-1cc0-410d-a0bc-fa5ec79ace0e",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-UserLocked"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "User Locked Out [4740]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-UserLocked\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4740\"\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| USER LOCK: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\tset_field(\"ALERT\", \"TRUE\");\n\t//    route_to_stream(\"P1-Alert\");\n\troute_to_stream(\"P2-Alert\");\n\troute_to_stream(\"P3-Password\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "154f29c1-196f-4969-8023-ed434c22bb62",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-NewGroupMember"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Group Membership Add - AD or Local [4732, 4728, 4756, 4746, 4751, 4761]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-NewGroupMember\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    (  to_string($message.winlog_event_id)         == \"4732\"  ||\n       to_string($message.winlog_event_id)         == \"4728\"  ||\n       to_string($message.winlog_event_id)         == \"4756\"  ||\n       to_string($message.winlog_event_id)         == \"4746\"  ||\n       to_string($message.winlog_event_id)         == \"4751\"  ||\n       to_string($message.winlog_event_id)         == \"4761\"    \n    )  \n    &&  \n    (\n       to_string($message.winlog_event_data_TargetUserName)    != \"None\"   &&       // Rapidrecovery shenanigans\n       to_string($message.winlog_event_data_TargetUserName)    != \"ReplayCoreEphemeralAccounts\"  // \n//       regex(\"\\\\$$\",to_string($message.winlog_event_data_SubjectUserName))  == false\n    )    \nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| NEW GROUP MEMBER: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "3b73420c-14e1-4b11-97b3-5b8d106d9f11",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-UserDeleted"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "User Account Deleted [4726]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-UserDeleted\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    (\n    to_string($message.winlog_event_id) == \"4726\"\n    )                                                        &&\n    // RapidRecovery backup enables/deletes accounts for operation overnight\n    NOT starts_with(value: to_string($message.winlog_event_data_TargetUserName), prefix:\"ReplayEngine\")\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| USER DELETED: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "e5e170ed-dbf3-47be-99b4-22632f4dc776",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP3-WinSec-BadPw-Kerberos"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Bad password (Kerberos) [4771, 4820]\n| Alert Priority 3 - Reporting"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP3-WinSec-BadPw-Kerberos\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4771\" ||\n    to_string($message.winlog_event_id) == \"4820\"\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let requestingIP = replace(to_string($message.winlog_event_data_IpAddress),\"::ffff:\"); // removes the ff...\n    let requestingName = lookup_value(\"CMG_DNS_table\", to_string(requestingIP));\n    set_field(\"cmg_requestingName\", requestingName);  //so we can make quick values\n    let subject_0 = concat(\"-GLA| Kerb-PW FAIL: \", to_string($message.winlog_event_data_TargetUserName));\n    let subject_1 = concat(subject_0, \" connecting from \");\n    let subject_fin = concat(subject_1, to_string(requestingName));\n    set_field(\"e-mail_subject\", subject_fin);\n    //\n    // create detail of (e-mail) alert\n    let LogonTypeResult = \"TGT\";\n    let LogonTypeErr    = lookup_value(\"WinLogonErr\" ,to_string($message.winlog_event_data_Status), 0);\n    let build_mess_0    = concat(\"Failed Password Attemept - \",  to_string($message.winlog_event_data_TargetUserName));\n    let build_mess_1    = concat(build_mess_0, \" attempting a log in from \");\n    let build_mess_2    = concat(build_mess_1, requestingIP);\n    let build_mess_3    = concat(build_mess_2, \" \");\n    let build_mess_4    = concat(build_mess_3, to_string(requestingName));\n    let build_mess_5    = concat(build_mess_4, \" Logon Type: \");\n    let build_mess_6    = concat(build_mess_5, to_string(LogonTypeResult));\n    let build_mess_7    = concat(build_mess_6, \". Attempt registered on: \");\n    let build_mess_8    = concat(build_mess_7, to_string($message.winlog_host_name));\n    let build_mess_9    = concat(build_mess_8, \".  ERROR: \");\n    let build_mess_fin  = concat(build_mess_9, to_string(LogonTypeErr));\n    set_field(\"e-mail_body\", build_mess_fin);\n//    route_to_stream(\"P1-Alert\");\n//    route_to_stream(\"P2-Alert\");\n    route_to_stream(\"P3-Reporting\");\n    route_to_stream(\"P3-Password\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "b6b50a78-6092-41ce-8438-574028a66268",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-NewGroupCreated"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Group Created - AD or Local [4731, 4727, 4754, 4744, 4749, 4759]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-NewGroupCreated\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4731\"  ||\n    to_string($message.winlog_event_id) == \"4727\"  ||\n    to_string($message.winlog_event_id) == \"4754\"  ||\n    to_string($message.winlog_event_id) == \"4744\"  ||\n    to_string($message.winlog_event_id) == \"4749\"  ||\n    to_string($message.winlog_event_id) == \"4759\"\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| NEW GROUP CREATED: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "12b691b6-ccd4-4217-9ba7-53b9614c0e2d",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-UserUNlocked"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "User UN-locked [4767]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-UserUNlocked\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"4767\"\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| USER UNLOCK: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\tset_field(\"ALERT\", \"TRUE\");\n\t//    route_to_stream(\"P1-Alert\");\n\troute_to_stream(\"P2-Alert\");\n\troute_to_stream(\"P3-Password\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "0683e232-9100-4214-9b7b-4ac30c780fee",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-OU-Moved"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "OU Moved [5139]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-OU-Moved\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"5139\"  \nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| OU MOVED by : \", to_string($message.winlog_event_data_SubjectUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "71a08ccd-5ba2-4174-9514-14d90f844b82",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-Reboot"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Reboot of Machine [1074]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-Reboot\"\nwhen\n    //PMachine was rebooted - this alert who and why.\n    // assumes you have checked for\n    // windows-security-information\n    (\n    to_string($message.winlog_event_id) == \"1074\"\n    )                                                   \nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| \", to_string($message.winlog_event_data_param5));\n    let subject_1 = concat(subject_0,\" of: \");\n    let subject_2 = concat(subject_1, to_string($message.source));\n    let subject_3 = concat(subject_2, \" by \");\n    let subject_4 = concat(subject_3, to_string($message.winlog_event_data_param7));\n    set_field(\"e-mail_subject\", subject_4);\n    let subject_5 = concat(subject_4, \" REASON: \");\n    let subject_6 = concat(subject_5, to_string($message.winlog_event_data_param2));\n    let subject_7 = concat(subject_6, \" COMMENT: \");\n    let subject_8 = concat(subject_7, \" UNAVAILABLE \");\n    \n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "351c2017-4904-4536-be40-117f15f97a8c",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "WinSECAlert Stage0DropSet"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "WinSECAlert Stage Zero Drop Set -    Messages with the following will be dropped (not alerted, not recorded) \n**** Be careful with this - If you don't want alerting, it is better to \n* Shunt the message to P3-Reporting\n* add a line to ignore it in \"AP1-2_Create_Alert_Marker\"\n* Let it die a short death in WinShortLifeStream"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"WinSECAlert Stage0DropSet\"\nwhen\n  // Drop noisy RapidRecovery items\n  // $message.winlog_collector_node_id == \"RapidRecoveryAccount\"                           OR    // removed, causing issues\n  // Drop actions on Machine accounts - we don't care ....right now.\n  regex(\".*\\\\$$\", to_string($message.winlog_event_data_TargetUserName)).matches == true OR\n  // Drop Healthmailbox logins - they aren't pertinant to what we are watching.\n  starts_with(to_string($message.winlog_event_data_TargetUserName), \"HealthMailbox\", true)\n  \nthen\n  //Drop the message out of processing\n  drop_message();\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "57d40863-3245-4a99-9200-e8c6ead999b3",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-AdminPWChange"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Admin Changed user Password [4724]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-AdminPWChange\"\nwhen\n    //Privlidged user changed a password\n    // assumes you have checked for\n    // windows-security-information\n    (\n    to_string($message.winlog_event_id) == \"4724\"\n    )                                                   &&\n    // RapidRecovery backup enables/deletes/resets PW on accounts for operation overnight\n    NOT starts_with(value: to_string($message.winlog_event_data_TargetUserName), prefix:\"ReplayEngine\")\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| An Admin re-set PW for USER: \", to_string($message.winlog_event_data_TargetUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\n\troute_to_stream(\"P3-Password\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "40718767-2509-4890-aac3-f20d04f54e47",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "AP2-WinSec-NewOU"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "New OU Created [5137]\n| Alert Priority 2"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"AP2-WinSec-NewOU\"\nwhen\n    // assumes you have checked for\n    // windows-security-information\n    to_string($message.winlog_event_id) == \"5137\"\nthen\n    // Build Alert structures\n    // Create subject of (e-mail) alert\n    let subject_0 = concat(\"-GLA| NEW OU Created by: \", to_string($message.winlog_event_data_SubjectUserName));\n    set_field(\"e-mail_subject\", subject_0);\n    //\n    // No detail needed - alert message structure is sufficient\n\t//\n\t//    route_to_stream(\"P1-Alert\");\n    route_to_stream(\"P2-Alert\");\n\t//    route_to_stream(\"P3-Reporting\");\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "stream",
+        "version": "1"
+      },
+      "id": "3cf86b3f-da50-4e6b-81fb-103e953242ab",
+      "data": {
+        "alarm_callbacks": [],
+        "outputs": [],
+        "remove_matches": {
+          "@type": "boolean",
+          "@value": true
+        },
+        "title": {
+          "@type": "string",
+          "@value": "winShortLifeStream"
+        },
+        "stream_rules": [
+          {
+            "type": {
+              "@type": "string",
+              "@value": "EXACT"
+            },
+            "field": {
+              "@type": "string",
+              "@value": "winlog_api"
+            },
+            "value": {
+              "@type": "string",
+              "@value": "wineventlog"
+            },
+            "inverted": {
+              "@type": "boolean",
+              "@value": false
+            },
+            "description": {
+              "@type": "string",
+              "@value": "Windows Event Log instance"
+            }
+          },
+          {
+            "type": {
+              "@type": "string",
+              "@value": "REGEX"
+            },
+            "field": {
+              "@type": "string",
+              "@value": "log_level"
+            },
+            "value": {
+              "@type": "string",
+              "@value": "[Ii]nformation"
+            },
+            "inverted": {
+              "@type": "boolean",
+              "@value": false
+            },
+            "description": {
+              "@type": "string",
+              "@value": "Windows log Information instance"
+            }
+          }
+        ],
+        "alert_conditions": [],
+        "matching_type": {
+          "@type": "string",
+          "@value": "AND"
+        },
+        "disabled": {
+          "@type": "boolean",
+          "@value": false
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Windows - Information logs"
+        },
+        "default_stream": {
+          "@type": "boolean",
+          "@value": false
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "stream",
+        "version": "1"
+      },
+      "id": "e0f8ba75-ee04-44a0-86eb-174bc6e9d599",
+      "data": {
+        "alarm_callbacks": [],
+        "outputs": [],
+        "remove_matches": {
+          "@type": "boolean",
+          "@value": true
+        },
+        "title": {
+          "@type": "string",
+          "@value": "WinWarnError"
+        },
+        "stream_rules": [
+          {
+            "type": {
+              "@type": "string",
+              "@value": "EXACT"
+            },
+            "field": {
+              "@type": "string",
+              "@value": "winlog_api"
+            },
+            "value": {
+              "@type": "string",
+              "@value": "wineventlog"
+            },
+            "inverted": {
+              "@type": "boolean",
+              "@value": false
+            },
+            "description": {
+              "@type": "string",
+              "@value": ""
+            }
+          },
+          {
+            "type": {
+              "@type": "string",
+              "@value": "REGEX"
+            },
+            "field": {
+              "@type": "string",
+              "@value": "log_level"
+            },
+            "value": {
+              "@type": "string",
+              "@value": "[Ww]arning|[Ee]rror|[Cc]ritical"
+            },
+            "inverted": {
+              "@type": "boolean",
+              "@value": false
+            },
+            "description": {
+              "@type": "string",
+              "@value": "Catch all warning and Error Level logs from Windows"
+            }
+          }
+        ],
+        "alert_conditions": [],
+        "matching_type": {
+          "@type": "string",
+          "@value": "AND"
+        },
+        "disabled": {
+          "@type": "boolean",
+          "@value": false
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Windows- Warning, Error and CRITICAL Logs"
+        },
+        "default_stream": {
+          "@type": "boolean",
+          "@value": false
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.0+5adccc3"
+        }
+      ]
+    }
+  ]
+}
