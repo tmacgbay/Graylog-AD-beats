@@ -1,7 +1,7 @@
 # GraylogMarket - Active Directory Monitoring and Alerting - Beats      
 ---read ALL of this before taking any action.
 
-EDIT: This was built in an older version (4.2.5 is current as of this edit)  The alerts are now legacy style and may not work.  If you are interested only in the rules, you can download just AD-Monitoring-pipeline-rules.json  
+EDIT: This was built in an older version (4.2.5 is current as of this edit)  The alerts are now legacy style and may not work.  If you are interested only in the rules, you can download just AD-Monitoring-pipeline-rules.json.   You should also note that AD-Monitoring-pipeline-rules.json is scripted for winlogbeats 7.11.1 it is newer than the ones that come with sidecar 1.0.1-1...   in the json fields are prepended with winlog_ but if you are using the older winbeatlog.exe the fields will come in prepended with winlogbeat_ 
 
 Graylog Content Pack - AD-Monitoring-Alerts-Beats.json
 
